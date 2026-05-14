@@ -15,16 +15,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.back.together02be.stock.dto.RealtimeStockPrice;
+import com.back.together02be.stock.dto.response.StockPriceRes;
 import com.back.together02be.stock.entity.Stock;
+import com.back.together02be.stock.entity.StockMarket;
 import com.back.together02be.stock.repository.StockRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("StockService - createSseEmitter 특성화 테스트")
+@DisplayName("StockService 테스트")
 class StockServiceTest {
 
 	// Mock
@@ -52,6 +55,38 @@ class StockServiceTest {
 	private void givenStockExists(String stockCode) {
 		given(stockRepository.findByStockCode(stockCode))
 			.willReturn(Optional.of(mock(Stock.class)));
+	}
+
+	@Test
+	@DisplayName("유효한 종목코드로 조회하면 StockPriceRes를 반환한다")
+	void getStockPrice_success() {
+		// given
+		String stockCode = "005930";
+		Stock stock = new Stock(stockCode, "삼성전자", StockMarket.KOSPI);
+		ReflectionTestUtils.setField(stock, "id", 1L); // BaseEntity의 id 주입
+
+		when(stockRepository.findByStockCode(stockCode)).thenReturn(Optional.of(stock));
+
+		// when
+		StockPriceRes result = stockService.getStockPrice(stockCode);
+
+		// then
+		assertThat(result.stockId()).isEqualTo(1L);
+		assertThat(result.stockCode()).isEqualTo(stockCode);
+		assertThat(result.stockName()).isEqualTo("삼성전자");
+	}
+
+	@Test
+	@DisplayName("존재하지 않는 종목코드로 조회하면 EntityNotFoundException이 발생한다")
+	void getStockPrice_notFound() {
+		// given
+		String stockCode = "INVALID";
+		when(stockRepository.findByStockCode(stockCode)).thenReturn(Optional.empty());
+
+		// when & then
+		assertThatThrownBy(() -> stockService.getStockPrice(stockCode))
+			.isInstanceOf(EntityNotFoundException.class)
+			.hasMessageContaining("존재하지 않는 종목코드입니다");
 	}
 
 	@Test
