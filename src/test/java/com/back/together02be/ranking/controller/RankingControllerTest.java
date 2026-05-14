@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.back.together02be.global.base.BaseIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ import java.util.List;
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @DisplayName("RankingController - 랭킹 API 통합 테스트")
-class RankingControllerTest {
+class RankingControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
