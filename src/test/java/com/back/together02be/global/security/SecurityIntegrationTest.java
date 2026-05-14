@@ -1,5 +1,6 @@
 package com.back.together02be.global.security;
 
+import com.back.together02be.global.base.BaseIntegrationTest;
 import com.back.together02be.global.util.JwtUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @AutoConfigureMockMvc
 @Import(SecurityIntegrationTest.TestProtectedController.class)
-class SecurityIntegrationTest {
+class SecurityIntegrationTest extends BaseIntegrationTest {
 
     private static final String SECRET = "test-secret-key-must-be-32-bytes!!";
 

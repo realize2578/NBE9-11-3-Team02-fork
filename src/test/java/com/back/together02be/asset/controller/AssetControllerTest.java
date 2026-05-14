@@ -4,6 +4,7 @@ import com.back.together02be.asset.entity.UserAccount;
 import com.back.together02be.asset.entity.UserStock;
 import com.back.together02be.asset.repository.UserAccountRepository;
 import com.back.together02be.asset.repository.UserStockRepository;
+import com.back.together02be.global.base.BaseIntegrationTest;
 import com.back.together02be.global.security.SecurityUser;
 import com.back.together02be.infra.kis.rest.KisPriceClient;
 import com.back.together02be.infra.kis.rest.dto.KisPriceRes;
@@ -38,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-public class AssetControllerTest {
+public class AssetControllerTest extends BaseIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

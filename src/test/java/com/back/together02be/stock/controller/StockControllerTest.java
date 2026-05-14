@@ -4,6 +4,7 @@ import static org.mockito.Mockito.*;
 		import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 		import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.back.together02be.global.base.BaseIntegrationTest;
 import com.back.together02be.stock.dto.response.StockListRes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ import java.util.List;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("StockController 통합 테스트")
-class StockControllerTest {
+class StockControllerTest extends BaseIntegrationTest {
 
 	@Autowired
 	private MockMvc mockMvc;
