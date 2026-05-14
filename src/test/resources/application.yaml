@@ -1,6 +1,8 @@
 spring:
+  main:
+    allow-bean-definition-overriding: true # [핵심] 기존 진짜 객체를 가짜로 덮어쓰도록 허용
   profiles:
-    active: test # 로컬 파일(secret)에 의존하지 않도록 test 환경으로 완전히 격리
+    active: test
   jpa:
     show-sql: false
     properties:
