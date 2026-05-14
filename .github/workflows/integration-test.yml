@@ -20,10 +20,9 @@ jobs:
       # 🛠️ [수정됨] 최상위 폴더에 있는 docker-compose.yaml을 바라보도록 경로 변경
       - name: Start Database with Docker Compose
         run: |
-          docker-compose -f docker-compose.yaml up -d
+          # 하이픈(-)을 빼고 띄어쓰기로 변경합니다.
+          docker compose -f docker-compose.yaml up -d
           
-          # 단순 15초 대기가 아니라, MySQL이 3306 포트에서 통신을 받을 준비가 
-          # 될 때까지 상태를 체크하는 조금 더 안정적인 스크립트로 보강했습니다.
           echo "Waiting for MySQL to be ready..."
           while ! nc -z localhost 3306; do
             sleep 1
@@ -39,7 +38,7 @@ jobs:
       - name: Run Integration Tests
         run: ./gradlew test
 
-      # 🛠️ [수정됨] 종료 시에도 최상위 폴더의 docker-compose.yaml을 참조하도록 변경
       - name: Stop Database
         if: always() 
-        run: docker-compose -f docker-compose.yaml down
+        # 여기도 하이픈(-)을 빼고 띄어쓰기로 변경합니다.
+        run: docker compose -f docker-compose.yaml down
