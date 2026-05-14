@@ -4,6 +4,8 @@ import com.back.together02be.asset.dto.response.UserStockRes;
 import com.back.together02be.asset.service.AssetService;
 import com.back.together02be.global.security.CustomAuthenticationFilter;
 import com.back.together02be.global.security.SecurityUser;
+import com.back.together02be.infra.kis.StockSubscriptionInitializer;
+import com.back.together02be.infra.kis.websocket.KisWebSocketClient;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
@@ -31,6 +33,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class AssetControllerQueryTest {
+
+    // [핵심 추가] 테스트 시 실제 외부 네트워크를 호출하지 못하도록 가짜 객체로 대체합니다.
+    @MockitoBean
+    private KisWebSocketClient kisWebSocketClient;
+
+    @MockitoBean
+    private StockSubscriptionInitializer stockSubscriptionInitializer;
 
     @Autowired MockMvc mockMvc;
 
