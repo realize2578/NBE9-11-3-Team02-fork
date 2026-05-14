@@ -4,10 +4,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import com.back.together02be.stock.dto.response.StockListRes;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -198,6 +200,76 @@ class StockServiceTest {
 
 			SseEmitter emitter = mocked.constructed().get(0);
 			verify(emitter, atLeastOnce()).complete();
+		}
+	}
+
+	// 전체 종목 조회 (ST-01) 테스트
+
+	@Test
+	@DisplayName("전체 종목 조회 - 실시간 캐시값이 있으면 현재가와 등락률을 매핑하여 반환한다")
+	void 전체_종목_조회_캐시있음() {
+		// given
+		Stock stock = new Stock("005930", "삼성전자", StockMarket.KOSPI);
+		ReflectionTestUtils.setField(stock, "id", 1L);
+		given(stockRepository.findAll()).willReturn(List.of(stock));
+
+		RealtimeStockPrice price = RealtimeStockPrice.builder()
+				.stockCode("005930")
+				.price("70000")
+				.changeRate("2.19")
+				.build();
+		given(rtStockPriceStore.get("005930")).willReturn(price);
+
+		// when
+		List<StockListRes> result = stockService.getStocks();
+
+		// then
+		assertThat(result).hasSize(1);
+		assertThat(result.get(0).stockCode()).isEqualTo("005930");
+		assertThat(result.get(0).currentPrice()).isEqualTo(70000L);
+		assertThat(result.get(0).changeRate()).isEqualTo(2.19);
+	}
+
+	@Test
+	@DisplayName("전체 종목 조회 - 캐시값이 없거나 파싱에 실패하면 null을 반환한다")
+	void 전체_종목_조회_캐시없음_및_파싱실패() {
+		// given
+		Stock stock1 = new Stock("000660", "SK하이닉스", StockMarket.KOSPI);
+		ReflectionTestUtils.setField(stock1, "id", 2L);
+		Stock stock2 = new Stock("035420", "NAVER", StockMarket.KOSPI);
+		ReflectionTestUtils.setField(stock2, "id", 3L);
+
+		given(stockRepository.findAll()).willReturn(List.of(stock1, stock2));
+
+		given(rtStockPriceStore.get("000660")).willReturn(null); // 캐시 없음
+
+		RealtimeStockPrice badPrice = RealtimeStockPrice.builder()
+				.stockCode("035420").price("abc").changeRate("rate").build();
+		given(rtStockPriceStore.get("035420")).willReturn(badPrice); // 숫자 파싱 실패
+
+		// when
+		List<StockListRes> result = stockService.getStocks();
+
+		// then
+		assertThat(result).hasSize(2);
+		assertThat(result.get(0).currentPrice()).isNull();
+		assertThat(result.get(0).changeRate()).isNull();
+		assertThat(result.get(1).currentPrice()).isNull();
+		assertThat(result.get(1).changeRate()).isNull();
+	}
+
+	@Test
+	@DisplayName("전체 종목 SSE 연결 시 SseEmitter 를 반환하고 콜백이 등록된다")
+	void 전체_종목_SSE_생성_및_콜백_등록() {
+		// given & when
+		try (MockedConstruction<SseEmitter> mocked = mockConstruction(SseEmitter.class)) {
+			SseEmitter result = stockService.createStockListSseEmitter();
+
+			// then
+			assertThat(result).isNotNull();
+			SseEmitter emitter = mocked.constructed().get(0);
+			verify(emitter, atLeastOnce()).onCompletion(any(Runnable.class));
+			verify(emitter, atLeastOnce()).onTimeout(any(Runnable.class));
 		}
 	}
 }

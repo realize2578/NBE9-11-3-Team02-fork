@@ -10,9 +10,7 @@ import com.back.together02be.stock.service.RealTimeStockPriceStore;
 import com.back.together02be.trade.controller.TradeController;
 import com.back.together02be.trade.util.MarketTimeValidator;
 import jakarta.transaction.Transactional;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,12 +58,27 @@ public class TradeControllerSellTest {
 
     private String accessToken;
 
-    // ────────────────────────────────────────────
-    // 성공 케이스
-    // ────────────────────────────────────────────
+    //마켓 시간 모킹(장 운영 시간이 아니여도 테스트 가능)
+    private static MockedStatic<MarketTimeValidator> mockedValidator;
+
+    @BeforeAll
+    static void beforeAll() {
+        mockedValidator = mockStatic(MarketTimeValidator.class);
+    }
+
+    @AfterAll
+    static void afterAll() {
+        if (mockedValidator != null) {
+            mockedValidator.close();
+        }
+    }
 
     @BeforeEach
     void setUp() {
+        //호출시 아무 일도 하지 않도록 설정
+        mockedValidator.when(MarketTimeValidator::validateMarketOpen)
+                .thenAnswer(invocation -> null);
+
         accessToken = JwtUtil.generateAccessToken(
                 jwtSecret,
                 60 * 60,  // 1시간
