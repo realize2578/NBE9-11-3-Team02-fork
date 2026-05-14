@@ -1,7 +1,6 @@
 spring:
   profiles:
-    active: dev
-    include: secret, local
+    active: test # 로컬 파일(secret)에 의존하지 않도록 test 환경으로 완전히 격리
   jpa:
     show-sql: false
     properties:
@@ -21,3 +20,8 @@ logging:
     org.hibernate.orm.jdbc.bind: OFF
     org.hibernate.orm.jdbc.extract: OFF
     org.springframework.transaction.interceptor: OFF
+
+# [핵심 추가] 깃허브 액션 환경에서 스프링 컨텍스트 에러를 방지하기 위한 더미 데이터
+kis:
+  app-key: "test-app-key-for-ci"
+  app-secret: "test-app-secret-for-ci"
