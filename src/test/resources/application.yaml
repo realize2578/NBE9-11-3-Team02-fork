@@ -25,3 +25,5 @@ logging:
 kis:
   app-key: "test-app-key-for-ci"
   app-secret: "test-app-secret-for-ci"
+  rest-base-url: "http://localhost:8080" # KisProperties 바인딩 에러 방지용
+  ws-url: "ws://localhost:8080"          # KisProperties 바인딩 에러 방지용
