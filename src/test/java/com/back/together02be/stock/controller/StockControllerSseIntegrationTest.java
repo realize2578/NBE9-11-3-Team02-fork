@@ -36,6 +36,7 @@ class StockControllerSseIntegrationTest {
 	private static final String SSE_URI      = "/api/stocks/{stockCode}/sse";
 	private static final String VALID_CODE   = "005930";
 	private static final String INVALID_CODE = "INVALID_99999";
+	private static final String ALL_SSE_URI  = "/api/stocks/sse";
 
 	@Autowired
 	private MockMvc mockMvc;
@@ -72,5 +73,17 @@ class StockControllerSseIntegrationTest {
 	void 없는_종목코드_404() throws Exception {
 		mockMvc.perform(get(SSE_URI, INVALID_CODE))
 			.andExpect(status().isNotFound());
+	}
+
+	// 전체 종목 SSE 통합 테스트 (ST-01)
+	@Test
+	@DisplayName("전체 종목 SSE 연결 시 text/event-stream 으로 응답한다")
+	void 전체_종목_SSE_스트림_수신() throws Exception {
+		mockMvc.perform(get(ALL_SSE_URI)
+						.accept(MediaType.TEXT_EVENT_STREAM))
+				.andExpect(status().isOk())
+				.andExpect(header().string(
+						HttpHeaders.CONTENT_TYPE,
+						containsString("text/event-stream")));
 	}
 }

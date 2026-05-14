@@ -11,12 +11,12 @@ import com.back.together02be.stock.repository.StockRepository;
 import com.back.together02be.stock.service.RealTimeStockPriceStore;
 import com.back.together02be.trade.dto.request.TradeSellReq;
 import com.back.together02be.trade.repository.TradeRepository;
+import com.back.together02be.trade.util.MarketTimeValidator;
 import com.back.together02be.users.entity.Users;
 import com.back.together02be.users.repository.UsersRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.mockito.MockedStatic;
+import org.mockito.ScopedMock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mockStatic;
 import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED;
 
 @SpringBootTest
@@ -73,6 +74,7 @@ class TradeSellProcessorConcurrencyTest {
 
     @BeforeEach
     void setUp() {
+
         // 1. BaseInitData로 이미 저장된 삼성전자 불러오기
         Stock stock = stockRepository.findByStockCode("005930")
                 .orElseThrow(() -> new IllegalStateException("삼성전자 종목이 초기 데이터에 없습니다."));
@@ -80,16 +82,16 @@ class TradeSellProcessorConcurrencyTest {
 
         // 2. 테스트용 유저 생성 (매번 새로 만들어 격리)
         Users user = new Users("testUser_" + System.nanoTime(), "test@test.com", "password");
-        userRepository.save(user);
+        userRepository.saveAndFlush(user);
         userId = user.getId();
 
         // 3. 테스트용 계좌 생성
         UserAccount account = new UserAccount(user, INITIAL_DEPOSIT, STOCK_PRICE * INITIAL_QUANTITY);
-        userAccountRepository.save(account);
+        userAccountRepository.saveAndFlush(account);
 
         // 4. 보유 주식 생성
         UserStock userStock = new UserStock(user, stock, INITIAL_QUANTITY, STOCK_PRICE);
-        userStockRepository.save(userStock);
+        userStockRepository.saveAndFlush(userStock);
 
         // 5. 실시간 주가 세팅 (stale 방지 — 현재 시각 기준)
         String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
@@ -216,7 +218,9 @@ class TradeSellProcessorConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             final int threadId = i;
             executorService.submit(() -> {
-                try {
+                try (MockedStatic<MarketTimeValidator> sw = mockStatic(MarketTimeValidator.class)){
+                    sw.when(MarketTimeValidator::validateMarketOpen).thenAnswer(inv->null);
+
                     startLatch.await();
 
                     System.out.println("[Thread-" + threadId + "] ▶ 전량 매도 시도 (요청 수량: " + sellQuantity + ")");
@@ -236,6 +240,9 @@ class TradeSellProcessorConcurrencyTest {
 
                 } catch (Exception e) {
                     failCount.incrementAndGet();
+                    System.err.println("======= 에러 발생 상세 원인 =======");
+                    e.printStackTrace();
+                    System.err.println("==================================");
                     UserStock current = userStockRepository
                             .findByUsersIdAndStockId(userId, stockId)
                             .orElse(null);
@@ -281,55 +288,4 @@ class TradeSellProcessorConcurrencyTest {
 
         assertThat(deletedStock).isEmpty();
     }
-
-    /*
-    @Test
-    @DisplayName("동시 매도 후 예수금 정합성 검증")
-    void concurrentSell_depositConsistency() throws InterruptedException {
-        // given
-        int threadCount = 5;
-        long sellQuantityPerThread = 10L; // 각 10주씩, 총 50주 (보유 100주 이내)
-
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch startLatch = new CountDownLatch(1);
-        CountDownLatch doneLatch = new CountDownLatch(threadCount);
-
-        AtomicInteger successCount = new AtomicInteger(0);
-
-        // when
-        for (int i = 0; i < threadCount; i++) {
-            executorService.submit(() -> {
-                try {
-                    startLatch.await();
-
-                    TradeSellReq request = new TradeSellReq(null, stockId, sellQuantityPerThread, STOCK_PRICE);
-                    tradeSellProcessor.processSell(userId, request);
-                    successCount.incrementAndGet();
-
-                } catch (Exception e) {
-                    // 실패 무시
-                } finally {
-                    doneLatch.countDown();
-                }
-            });
-        }
-
-        startLatch.countDown();
-        doneLatch.await(30, TimeUnit.SECONDS);
-        executorService.shutdown();
-
-        // then
-        UserAccount finalAccount = userAccountRepository.findByUsersId(userId)
-                .orElseThrow();
-
-        long expectedDeposit = INITIAL_DEPOSIT + (successCount.get() * sellQuantityPerThread * STOCK_PRICE);
-
-        System.out.println("=== 예수금 정합성 테스트 결과 ===");
-        System.out.println("성공한 매도 수: " + successCount.get());
-        System.out.println("예상 예수금: " + expectedDeposit);
-        System.out.println("실제 예수금: " + finalAccount.getDeposit());
-
-        assertThat(finalAccount.getDeposit()).isEqualTo(expectedDeposit);
-    }
-    */
 }
