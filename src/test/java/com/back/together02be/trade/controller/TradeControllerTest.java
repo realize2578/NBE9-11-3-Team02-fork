@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.back.together02be.global.base.BaseIntegrationTest;
 import com.back.together02be.global.exception.DuplicateRequestException;
 import com.back.together02be.global.security.CustomAuthenticationFilter;
 import com.back.together02be.global.security.SecurityUser;
@@ -32,7 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class TradeControllerTest extends BaseIntegrationTest {
+class TradeControllerTest {
 
     @Autowired
     MockMvc mockMvc;

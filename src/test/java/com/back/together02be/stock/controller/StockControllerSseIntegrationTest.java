@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.back.together02be.global.base.BaseIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +23,7 @@ import com.back.together02be.stock.service.RealTimeStockPriceStore;
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("StockController - SSE 엔드포인트 통합 테스트")
-class StockControllerSseIntegrationTest extends BaseIntegrationTest {
+class StockControllerSseIntegrationTest {
 
 	// Mock
 	@MockitoBean

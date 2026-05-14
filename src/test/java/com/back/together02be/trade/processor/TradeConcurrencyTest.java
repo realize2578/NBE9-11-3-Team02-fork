@@ -7,7 +7,6 @@ import com.back.together02be.asset.entity.UserAccount;
 import com.back.together02be.asset.entity.UserStock;
 import com.back.together02be.asset.repository.UserAccountRepository;
 import com.back.together02be.asset.repository.UserStockRepository;
-import com.back.together02be.global.base.BaseIntegrationTest;
 import com.back.together02be.global.idempotency.IdempotencyKey;
 import com.back.together02be.global.idempotency.IdempotencyKeyRepository;
 import com.back.together02be.stock.dto.RealtimeStockPrice;
@@ -41,7 +40,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
  * 각 테스트 후 @AfterEach에서 데이터를 직접 정리한다.
  */
 @SpringBootTest
-class TradeConcurrencyTest extends BaseIntegrationTest {
+class TradeConcurrencyTest {
 
     @Autowired
     TradeBuyProcessor tradeBuyProcessor;

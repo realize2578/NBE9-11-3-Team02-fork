@@ -4,7 +4,6 @@ import com.back.together02be.asset.entity.UserAccount;
 import com.back.together02be.asset.entity.UserStock;
 import com.back.together02be.asset.repository.UserAccountRepository;
 import com.back.together02be.asset.repository.UserStockRepository;
-import com.back.together02be.global.base.BaseIntegrationTest;
 import com.back.together02be.ranking.repository.RankingSeasonRepository;
 import com.back.together02be.stock.dto.RealtimeStockPrice;
 import com.back.together02be.stock.entity.Stock;
@@ -41,7 +40,7 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
 
 @SpringBootTest
 @Transactional(propagation = NOT_SUPPORTED) // 각 스레드가 독립적인 트랜잭션을 가지도록
-class TradeSellProcessorConcurrencyTest extends BaseIntegrationTest {
+class TradeSellProcessorConcurrencyTest {
 
     @Autowired
     private TradeSellProcessor tradeSellProcessor;
