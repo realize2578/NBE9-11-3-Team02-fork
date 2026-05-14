@@ -8,40 +8,38 @@ jobs:
     runs-on: ubuntu-latest 
 
     steps:
-      # 1. 저장소에서 코드 가져오기
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. JDK 17 설치
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # 3. [핵심] 프로젝트 내의 docker-compose.yaml을 이용해 MySQL 실행
+      # 🛠️ [수정됨] 최상위 폴더에 있는 docker-compose.yaml을 바라보도록 경로 변경
       - name: Start Database with Docker Compose
         run: |
-          docker-compose -f src/main/resources/docker-compose.yaml up -d
+          docker-compose -f docker-compose.yaml up -d
           
-          # MySQL 컨테이너가 켜지고 연결을 받을 준비가 될 때까지 잠시 대기합니다.
-          # (컴퓨터 사양에 따라 다르지만 보통 10~20초 정도 부여합니다)
+          # 단순 15초 대기가 아니라, MySQL이 3306 포트에서 통신을 받을 준비가 
+          # 될 때까지 상태를 체크하는 조금 더 안정적인 스크립트로 보강했습니다.
           echo "Waiting for MySQL to be ready..."
-          sleep 15 
+          while ! nc -z localhost 3306; do
+            sleep 1
+          done
+          echo "MySQL is up and running!"
 
-      # 4. Gradle 환경 세팅 및 캐싱
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      # 5. gradlew 실행 권한 부여
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # 6. 통합 테스트 실행
       - name: Run Integration Tests
         run: ./gradlew test
 
-      # 7. (선택) 테스트가 끝난 후 도커 컨테이너 정리
+      # 🛠️ [수정됨] 종료 시에도 최상위 폴더의 docker-compose.yaml을 참조하도록 변경
       - name: Stop Database
-        if: always() # 테스트 성공/실패 여부 상관없이 항상 실행
-        run: docker-compose -f src/main/resources/docker-compose.yaml down
+        if: always() 
+        run: docker-compose -f docker-compose.yaml down
